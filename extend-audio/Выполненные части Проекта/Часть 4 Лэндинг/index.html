@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXTEND Audio — Идеальный звук под твои наушники</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #0E161C 0%, #1A252F 100%);
+        }
+
+        .logo-glow {
+            filter: drop-shadow(0 0 30px rgb(253 94 22 / 0.6));
+        }
+
+        .accent-orange {
+            color: #FD5E16;
+        }
+
+        .border-cyan {
+            border-color: rgba(79, 255, 254, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-[#0E161C] text-white">
+
+    <!-- 1. Первый экран -->
+    <section class="hero-bg py-24">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            <div class="flex justify-center mb-8">
+                <img src="logo.png" alt="EXTEND Audio Logo" class="w-32 h-32 rounded-3xl logo-glow">
+            </div>
+            <h1 class="text-6xl md:text-7xl font-bold mb-6 leading-tight">
+                Идеальный звук<br>под <span class="accent-orange">твои наушники</span>
+            </h1>
+            <p class="text-2xl text-zinc-400 mb-10 max-w-2xl mx-auto">
+                Кроссплатформенный аудиоплеер с сообществом пресетов
+            </p>
+            <a href="#questionnaire"
+               class="bg-[#FD5E16] hover:bg-[#FF7A3F] text-black font-semibold px-10 py-5 rounded-2xl text-xl transition">
+                Принять участие в проекте
+            </a>
+        </div>
+    </section>
+
+    <!-- 2. О проекте -->
+    <section class="py-20 bg-[#0E161C]">
+        <div class="max-w-5xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12">О EXTEND Audio</h2>
+            <div class="max-w-3xl mx-auto text-center text-xl text-zinc-300 leading-relaxed">
+                <p>EXTEND Audio — удобный кроссплатформенный аудиоплеер, который помогает быстро настроить звук именно под твою модель наушников с помощью готовых пресетов от сообщества.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Проблема -->
+    <section class="py-20 bg-[#1A252F]">
+        <div class="max-w-5xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12">Проблема</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-[#0E161C] p-8 rounded-3xl border border-cyan">
+                    <p class="accent-orange text-sm font-medium mb-2">БОЛЬ 1</p>
+                    <p class="text-2xl font-semibold mb-4">Звук "из коробки" редко устраивает</p>
+                    <p class="text-zinc-400">Заводские настройки почти никогда не подходят под индивидуальный слух и предпочтения.</p>
+                </div>
+                <div class="bg-[#0E161C] p-8 rounded-3xl border border-cyan">
+                    <p class="accent-orange text-sm font-medium mb-2">БОЛЬ 2</p>
+                    <p class="text-2xl font-semibold mb-4">Сложно и долго настраивать</p>
+                    <p class="text-zinc-400">Ручная настройка эквалайзера отнимает много времени и не всегда даёт нужный результат.</p>
+                </div>
+                <div class="bg-[#0E161C] p-8 rounded-3xl border border-cyan">
+                    <p class="accent-orange text-sm font-medium mb-2">БОЛЬ 3</p>
+                    <p class="text-2xl font-semibold mb-4">Нет доверия</p>
+                    <p class="text-zinc-400">Боязно скачивать пресеты и программы из неизвестных источников.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Решение -->
+    <section class="py-20 bg-[#0E161C]">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-8">Наше решение</h2>
+            <p class="text-2xl text-zinc-300 max-w-3xl mx-auto">
+                Создаём удобный аудиоплеер с поиском готовых пресетов под конкретные модели наушников и встроенным эквалайзером.
+            </p>
+            <p class="text-2xl accent-orange mt-6 font-medium">
+                Один клик — и твои наушники звучат именно так, как ты хочешь
+            </p>
+        </div>
+    </section>
+
+    <!-- 5. Для кого проект -->
+    <section class="py-20 bg-[#1A252F]">
+        <div class="max-w-5xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12">Для кого проект</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-[#0E161C] p-8 rounded-3xl text-center border border-cyan">
+                    <h3 class="text-2xl font-semibold mb-4">Аудиофилы</h3>
+                    <p class="text-zinc-400">Люди, которые ценят качественный звук и хотят тонкой настройки.</p>
+                </div>
+                <div class="bg-[#0E161C] p-8 rounded-3xl text-center border border-cyan">
+                    <h3 class="text-2xl font-semibold mb-4">Геймеры</h3>
+                    <p class="text-zinc-400">Пользователи JBL Quantum, HyperX, Logitech и других игровых наушников.</p>
+                </div>
+                <div class="bg-[#0E161C] p-8 rounded-3xl text-center border border-cyan">
+                    <h3 class="text-2xl font-semibold mb-4">Меломаны</h3>
+                    <p class="text-zinc-400">Все, кто просто хочет комфортно слушать музыку без раздражения от заводского звука.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Ключевые возможности -->
+    <section id="features" class="py-20 bg-[#0E161C]">
+        <div class="max-w-5xl mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16">Ключевые возможности</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-[#1A252F] p-8 rounded-3xl border border-cyan hover:border-[#FD5E16]/50 transition">
+                    <i class="fa-solid fa-magnifying-glass text-5xl accent-orange mb-6"></i>
+                    <h3 class="text-2xl font-semibold mb-4">Поиск пресетов</h3>
+                    <p class="text-zinc-400">Мгновенный поиск готовых настроек под твою модель наушников от реальных пользователей.</p>
+                </div>
+                <div class="bg-[#1A252F] p-8 rounded-3xl border border-cyan hover:border-[#FD5E16]/50 transition">
+                    <i class="fa-solid fa-sliders text-5xl accent-orange mb-6"></i>
+                    <h3 class="text-2xl font-semibold mb-4">Встроенный эквалайзер</h3>
+                    <p class="text-zinc-400">Точная настройка + возможность сохранять и делиться своими пресетами.</p>
+                </div>
+                <div class="bg-[#1A252F] p-8 rounded-3xl border border-cyan hover:border-[#FD5E16]/50 transition">
+                    <i class="fa-solid fa-headphones text-5xl accent-orange mb-6"></i>
+                    <h3 class="text-2xl font-semibold mb-4">Мгновенное прослушивание</h3>
+                    <p class="text-zinc-400">Загружай треки и сразу проверяй звучание с выбранным пресетом.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Блок анкеты -->
+    <section id="questionnaire" class="py-24 bg-gradient-to-br from-[#FD5E16] to-orange-600 text-black">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-5xl font-bold mb-6">Хочешь идеальный звук в своих наушниках?</h2>
+            <p class="text-2xl mb-10">Помоги нам создать лучший аудиоплеер и получи ранний доступ</p>
+
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSe4NB4l1JQuP43PSxbBUMpnhGGsPyKU0IssTxXKVhnF8ZaXlA/viewform?usp=header"
+               target="_blank"
+               class="inline-block bg-black text-white font-bold text-2xl px-16 py-8 rounded-3xl hover:scale-110 transition">
+                Пройти анкету (2–3 минуты)
+            </a>
+        </div>
+    </section>
+
+    <!-- 8. Финальный экран -->
+    <section class="py-20 bg-[#0E161C]">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            <div class="flex justify-center mb-8">
+                <img src="logo.png" alt="EXTEND Audio" class="w-24 h-24 rounded-3xl">
+            </div>
+            <h2 class="text-4xl font-bold mb-4">EXTEND Audio</h2>
+            <p class="text-xl text-zinc-400 mb-10">Сделаем так, чтобы музыка звучала именно так, как ты хочешь</p>
+
+            <a href="#questionnaire"
+               class="bg-[#FD5E16] hover:bg-[#FF7A3F] text-black font-semibold px-12 py-6 rounded-2xl text-xl inline-block">
+                Принять участие в развитии проекта
+            </a>
+        </div>
+    </section>
+
+    <footer class="py-8 text-center text-zinc-500 text-sm bg-black/30">
+        © 2026 EXTEND Audio
+    </footer>
+</body>
+</html>

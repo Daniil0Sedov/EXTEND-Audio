@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="32dp">
+
+        <TextView
+            android:id="@+id/buttonBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/back"
+            android:textColor="@color/brand_cyan"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutCoverShell"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:padding="14dp">
+
+            <FrameLayout
+                android:id="@+id/layoutCoverCard"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:background="@drawable/bg_card"
+                android:clipToOutline="true"
+                android:outlineProvider="background"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.extend.audio.ui.player.TrackCardGlowView
+                    android:id="@+id/viewCoverGlow"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center" />
+
+                <ImageView
+                    android:id="@+id/imageCover"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/track_art"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
+                    android:id="@+id/imageCoverFallback"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/logo"
+                    android:src="@drawable/extend_logo" />
+            </FrameLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/textTrackTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:text="Selected track title" />
+
+        <TextView
+            android:id="@+id/textTrackArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"
+            tools:text="Unknown artist" />
+
+        <TextView
+            android:id="@+id/textPreset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card_subtle"
+            android:paddingStart="14dp"
+            android:paddingTop="7dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="7dp"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            tools:text="Preset: AirPods Pro 2" />
+
+        <TextView
+            android:id="@+id/textEqualizerStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_card_subtle"
+            android:paddingStart="14dp"
+            android:paddingTop="7dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="7dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            tools:text="Equalizer engine is active." />
+
+        <SeekBar
+            android:id="@+id/seekProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:max="100"
+            android:progressBackgroundTint="@color/divider"
+            android:progressTint="@color/brand_orange"
+            android:thumbTint="@color/brand_orange" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textCurrentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                tools:text="00:12" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/textDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                tools:text="03:45" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/buttonShuffle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_player_toggle_button"
+                android:contentDescription="@string/shuffle_playlist"
+                android:padding="9dp"
+                android:src="@drawable/ic_shuffle_minimal"
+                android:tint="@color/player_toggle_icon_tint" />
+
+            <ImageButton
+                android:id="@+id/buttonRepeat"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_player_toggle_button"
+                android:contentDescription="@string/repeat_track"
+                android:padding="9dp"
+                android:src="@drawable/ic_repeat_minimal"
+                android:tint="@color/player_toggle_icon_tint" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/buttonPrevious"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_player_secondary_button"
+                android:contentDescription="@string/previous"
+                android:padding="12dp"
+                android:src="@drawable/ic_prev_minimal"
+                android:tint="@color/player_minimal_icon_tint" />
+
+            <FrameLayout
+                android:layout_width="164dp"
+                android:layout_height="164dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:foregroundGravity="center"
+                android:padding="18dp">
+
+                <com.extend.audio.ui.player.AudioPulseView
+                    android:id="@+id/viewPlayButtonGlow"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center" />
+
+                <ImageButton
+                    android:id="@+id/buttonPlayPause"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_player_primary_core"
+                    android:contentDescription="@string/play"
+                    android:padding="24dp"
+                    android:src="@drawable/ic_play_minimal"
+                    android:tint="@color/player_primary_icon_tint" />
+            </FrameLayout>
+
+            <ImageButton
+                android:id="@+id/buttonNext"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_player_secondary_button"
+                android:contentDescription="@string/next"
+                android:padding="12dp"
+                android:src="@drawable/ic_next_minimal"
+                android:tint="@color/player_minimal_icon_tint" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

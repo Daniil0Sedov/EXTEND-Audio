@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_nav_graph"
+    app:startDestination="@id/welcomeFragment">
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.extend.audio.ui.welcome.WelcomeFragment"
+        android:label="@string/app_name" />
+
+    <fragment
+        android:id="@+id/libraryFragment"
+        android:name="com.extend.audio.ui.library.LibraryFragment"
+        android:label="@string/library_title">
+        <argument
+            android:name="openPicker"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/presetsFragment"
+        android:name="com.extend.audio.ui.presets.PresetsFragment"
+        android:label="@string/presets_title" />
+
+    <fragment
+        android:id="@+id/mixerFragment"
+        android:name="com.extend.audio.ui.mixer.MixerFragment"
+        android:label="@string/mixer_title" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.extend.audio.ui.profile.ProfileFragment"
+        android:label="@string/profile_title" />
+
+    <fragment
+        android:id="@+id/playerFragment"
+        android:name="com.extend.audio.ui.player.PlayerFragment"
+        android:label="@string/player_title" />
+</navigation>

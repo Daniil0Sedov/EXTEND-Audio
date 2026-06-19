@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_cyan">#24D8FF</color>
+    <color name="brand_cyan_glow">#6624D8FF</color>
+    <color name="brand_cyan_glow_soft">#2224D8FF</color>
+    <color name="brand_cyan_surface">#1624D8FF</color>
+    <color name="brand_cyan_stroke">#6B24D8FF</color>
+    <color name="brand_orange">#FD5E16</color>
+    <color name="bg_root">#08111A</color>
+    <color name="bg_surface">#101C28</color>
+    <color name="bg_surface_alt">#132434</color>
+    <color name="text_primary">#F4F7FB</color>
+    <color name="text_secondary">#95A9BD</color>
+    <color name="divider">#294258</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+</resources>
