@@ -34,6 +34,7 @@ class PlayerFragment : Fragment() {
     private var isUserSeeking = false
     private var hasVisualizerPermission = false
     private var hasRequestedVisualizerPermission = false
+    private var shouldCaptureVisualization = false
     private var lastBoundArtworkKey: String? = null
     private var lastArtworkRefreshTrackId: String? = null
 
@@ -153,10 +154,12 @@ class PlayerFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        shouldCaptureVisualization = true
         syncVisualizerCaptureState()
     }
 
     override fun onStop() {
+        shouldCaptureVisualization = false
         viewModel.setAudioVisualizationEnabled(false, hasVisualizerPermission)
         super.onStop()
     }
@@ -169,9 +172,7 @@ class PlayerFragment : Fragment() {
     }
 
     private fun syncVisualizerCaptureState() {
-        val isFragmentStarted =
-            viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
-        viewModel.setAudioVisualizationEnabled(isFragmentStarted, hasVisualizerPermission)
+        viewModel.setAudioVisualizationEnabled(shouldCaptureVisualization, hasVisualizerPermission)
     }
 
     private fun hasRecordAudioPermission(): Boolean {
