@@ -1,5 +1,7 @@
 package com.extend.audio.data.database
 
+/** Удобная модель Room, которая загружает пресет сразу вместе с его полосами EQ. */
+
 import androidx.room.Embedded
 import androidx.room.Relation
 

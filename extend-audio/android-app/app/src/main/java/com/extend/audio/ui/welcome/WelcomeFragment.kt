@@ -1,5 +1,7 @@
 package com.extend.audio.ui.welcome
 
+/** Стартовый экран, который вводит пользователя в основной сценарий приложения. */
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,11 +14,13 @@ import com.extend.audio.R
 import com.extend.audio.databinding.FragmentWelcomeBinding
 import com.extend.audio.ui.library.LibraryFragment
 
+/** Приветственный экран, который ведёт пользователя либо к импорту музыки, либо сразу в библиотеку. */
 class WelcomeFragment : Fragment() {
 
     private var _binding: FragmentWelcomeBinding? = null
     private val binding get() = _binding!!
 
+    /** Создаёт view стартового экрана через ViewBinding. */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -26,6 +30,7 @@ class WelcomeFragment : Fragment() {
         return binding.root
     }
 
+    /** Назначает кнопкам переход в основной сценарий приложения. */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -48,6 +53,7 @@ class WelcomeFragment : Fragment() {
         }
     }
 
+    /** Освобождает binding, когда view экрана уничтожается. */
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()

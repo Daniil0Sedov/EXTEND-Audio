@@ -1,5 +1,7 @@
 package com.extend.audio.data.database
 
+/** Главная Room-база, где локально хранятся треки, пресеты и полосы эквалайзера. */
+
 import androidx.room.migration.Migration
 import androidx.room.Database
 import androidx.room.RoomDatabase

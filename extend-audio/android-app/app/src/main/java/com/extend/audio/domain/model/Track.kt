@@ -1,5 +1,7 @@
 package com.extend.audio.domain.model
 
+/** Доменная модель локального аудиотрека, импортированного пользователем в библиотеку. */
+
 data class Track(
     val id: String,
     val title: String,

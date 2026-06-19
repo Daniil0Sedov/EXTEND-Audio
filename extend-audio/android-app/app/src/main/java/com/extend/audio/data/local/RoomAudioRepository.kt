@@ -1,5 +1,7 @@
 package com.extend.audio.data.local
 
+/** Реализация репозитория поверх Room для офлайн-работы с треками и пресетами. */
+
 import com.extend.audio.data.database.EqSettingDao
 import com.extend.audio.data.database.EqSettingEntity
 import com.extend.audio.data.database.PresetDao

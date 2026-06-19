@@ -1,5 +1,7 @@
 package com.extend.audio.ui.player
 
+/** Кастомный glow-слой вокруг карточки трека, реагирующий на громкость аудио. */
+
 import android.content.Context
 import android.graphics.BlurMaskFilter
 import android.graphics.Canvas

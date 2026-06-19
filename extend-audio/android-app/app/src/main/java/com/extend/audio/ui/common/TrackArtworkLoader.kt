@@ -1,5 +1,7 @@
 package com.extend.audio.ui.common
 
+/** Безопасная загрузка локальной обложки трека с fallback на стандартный плейсхолдер. */
+
 import android.net.Uri
 import android.widget.ImageView
 import androidx.core.view.isVisible
@@ -7,6 +9,7 @@ import coil.load
 import com.extend.audio.R
 import com.extend.audio.domain.model.Track
 
+/** Загружает локальную обложку трека и показывает fallback, если её нет или она не открылась. */
 fun loadTrackArtwork(
     imageView: ImageView,
     placeholderView: ImageView,
@@ -35,6 +38,7 @@ fun loadTrackArtwork(
     }
 }
 
+/** Упрощённая перегрузка для мест, где достаточно одного ImageView с логотипом по умолчанию. */
 fun loadTrackArtwork(
     imageView: ImageView,
     track: Track?,

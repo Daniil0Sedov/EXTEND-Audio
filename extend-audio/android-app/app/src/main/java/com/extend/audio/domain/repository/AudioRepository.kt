@@ -1,5 +1,7 @@
 package com.extend.audio.domain.repository
 
+/** Контракт доступа к трекам, пресетам и текущему состоянию аудиосессии. */
+
 import com.extend.audio.domain.model.Preset
 import com.extend.audio.domain.model.Track
 import kotlinx.coroutines.flow.StateFlow

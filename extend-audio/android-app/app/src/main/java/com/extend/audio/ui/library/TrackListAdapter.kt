@@ -1,5 +1,7 @@
 package com.extend.audio.ui.library
 
+/** Адаптер карточек треков с подсветкой текущего воспроизводимого элемента. */
+
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.view.View
@@ -15,6 +17,7 @@ import com.extend.audio.domain.model.Track
 import com.extend.audio.ui.common.formatDuration
 import com.extend.audio.ui.common.loadTrackArtwork
 
+/** Адаптер карточек треков, который также подсвечивает текущий играющий элемент. */
 class TrackListAdapter(
     private val onTrackClicked: (Track) -> Unit,
 ) : ListAdapter<Track, TrackListAdapter.TrackViewHolder>(TrackDiffCallback) {
@@ -22,20 +25,24 @@ class TrackListAdapter(
     private var activeTrackId: String? = null
     private var isPlaybackActive: Boolean = false
 
+    /** Создаёт view holder карточки трека. */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return TrackViewHolder(ItemTrackBinding.inflate(inflater, parent, false))
     }
 
+    /** Привязывает конкретный трек к карточке списка. */
     override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
+    /** Останавливает анимации карточки перед повторным использованием holder. */
     override fun onViewRecycled(holder: TrackViewHolder) {
         holder.recycle()
         super.onViewRecycled(holder)
     }
 
+    /** Обновляет состояние текущего играющего трека и перерисовывает только нужные элементы. */
     fun updatePlaybackState(trackId: String?, isPlaying: Boolean) {
         val previousTrackId = activeTrackId
         val previousIsPlaying = isPlaybackActive
@@ -49,6 +56,7 @@ class TrackListAdapter(
         notifyTrackChanged(trackId)
     }
 
+    /** Ищет позицию трека в текущем списке и точечно обновляет её в RecyclerView. */
     private fun notifyTrackChanged(trackId: String?) {
         if (trackId == null) return
         val position = currentList.indexOfFirst { it.id == trackId }
@@ -57,12 +65,14 @@ class TrackListAdapter(
         }
     }
 
+    /** Holder одной карточки трека в библиотеке. */
     inner class TrackViewHolder(
         private val binding: ItemTrackBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
 
         private var glowAnimator: AnimatorSet? = null
 
+        /** Заполняет карточку метаданными трека и визуальным состоянием воспроизведения. */
         fun bind(track: Track) {
             val context = binding.root.context
             val artist = track.artist ?: context.getString(R.string.unknown_artist)
@@ -100,10 +110,12 @@ class TrackListAdapter(
             binding.root.setOnClickListener { onTrackClicked(track) }
         }
 
+        /** Очищает временные анимации при переиспользовании карточки. */
         fun recycle() {
             stopGlowAnimation()
         }
 
+        /** Запускает мягкое свечение вокруг трека, который сейчас воспроизводится. */
         private fun startGlowAnimation() {
             if (glowAnimator != null) return
 
@@ -136,6 +148,7 @@ class TrackListAdapter(
             }
         }
 
+        /** Полностью останавливает glow-анимацию карточки. */
         private fun stopGlowAnimation() {
             glowAnimator?.cancel()
             glowAnimator = null
@@ -146,11 +159,14 @@ class TrackListAdapter(
         }
     }
 
+    /** DiffUtil для точного сравнения элементов списка треков. */
     private object TrackDiffCallback : DiffUtil.ItemCallback<Track>() {
+        /** Сравнивает идентичность элементов по id трека. */
         override fun areItemsTheSame(oldItem: Track, newItem: Track): Boolean {
             return oldItem.id == newItem.id
         }
 
+        /** Проверяет, изменилось ли содержимое трека целиком. */
         override fun areContentsTheSame(oldItem: Track, newItem: Track): Boolean {
             return oldItem == newItem
         }

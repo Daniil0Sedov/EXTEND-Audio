@@ -1,5 +1,7 @@
 package com.extend.audio.ui.presets
 
+/** Экран библиотеки пресетов, где пользователь управляет сохранёнными настройками звука. */
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +23,7 @@ import com.extend.audio.ui.main.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
+/** Экран списка пресетов с действиями применить, редактировать и удалить. */
 class PresetsFragment : Fragment() {
 
     private var _binding: FragmentPresetsBinding? = null
@@ -33,6 +36,7 @@ class PresetsFragment : Fragment() {
         onDeleteClicked = ::onPresetDeleteClicked,
     )
 
+    /** Создаёт view экрана пресетов через ViewBinding. */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -42,6 +46,7 @@ class PresetsFragment : Fragment() {
         return binding.root
     }
 
+    /** Инициализирует список пресетов и подписку на состояние текущего активного пресета. */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -74,16 +79,19 @@ class PresetsFragment : Fragment() {
         }
     }
 
+    /** Освобождает binding, когда view фрагмента больше не используется. */
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
     }
 
+    /** Делает выбранный пресет активным для текущего воспроизведения. */
     private fun onPresetApplyClicked(preset: Preset) {
         viewModel.applyPreset(preset.id)
         Toast.makeText(requireContext(), R.string.preset_applied, Toast.LENGTH_SHORT).show()
     }
 
+    /** Подготавливает выбранный пресет к редактированию и открывает экран эквалайзера. */
     private fun onPresetEditClicked(preset: Preset) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.preparePresetForEditing(preset.id)
@@ -91,6 +99,7 @@ class PresetsFragment : Fragment() {
         }
     }
 
+    /** Создаёт новый черновик пресета и переводит пользователя на экран эквалайзера. */
     private fun createPreset() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.prepareNewPresetDraft()
@@ -98,6 +107,7 @@ class PresetsFragment : Fragment() {
         }
     }
 
+    /** Показывает подтверждение и удаляет пресет из локальной библиотеки. */
     private fun onPresetDeleteClicked(preset: Preset) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.delete_preset_title)

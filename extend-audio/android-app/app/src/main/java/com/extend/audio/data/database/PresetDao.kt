@@ -1,5 +1,7 @@
 package com.extend.audio.data.database
 
+/** DAO для списка пресетов и операций выбора активного пресета. */
+
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy

@@ -1,5 +1,7 @@
 package com.extend.audio.ui.main
 
+/** Главная ViewModel приложения, которая синхронизирует UI, репозиторий и плеер. */
+
 import android.app.Application
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -27,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
+/** Агрегированное состояние приложения, которое используют основные экраны. */
 data class MainUiState(
     val tracks: List<Track> = emptyList(),
     val presets: List<Preset> = emptyList(),
@@ -43,12 +46,14 @@ data class MainUiState(
     val visualizerBands: List<Float> = emptyList(),
 )
 
+/** Результат импорта папки: сколько треков добавлено, найдено и обновлено. */
 data class FolderImportResult(
     val importedCount: Int = 0,
     val supportedFilesCount: Int = 0,
     val updatedCount: Int = 0,
 )
 
+/** Возможные результаты попытки сохранить текущий пресет. */
 enum class SavePresetResult {
     CREATED,
     UPDATED,
@@ -58,11 +63,13 @@ enum class SavePresetResult {
     NO_DRAFT,
 }
 
+/** Возможные результаты удаления пресета из локальной библиотеки. */
 enum class DeletePresetResult {
     DELETED,
     NOT_FOUND,
 }
 
+/** Главная ViewModel, которая собирает единое состояние для всех экранов MVP. */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val app = application as ExtendAudioApplication
@@ -72,6 +79,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val shuffleEnabled = MutableStateFlow(false)
     private val repeatOneEnabled = MutableStateFlow(false)
 
+    /** Общий uiState, собранный из репозитория, плеера и локальных флагов интерфейса. */
     val uiState: StateFlow<MainUiState> = combine(
         combine(
             repository.tracks,
@@ -147,6 +155,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     )
 
+    /** Подключает активный пресет к реальному эквалайзеру плеера при каждом изменении. */
     init {
         viewModelScope.launch {
             repository.activePreset
@@ -158,6 +167,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Импортирует все поддерживаемые аудиофайлы из выбранной пользователем папки. */
     suspend fun importFolder(treeUri: Uri): FolderImportResult = withContext(Dispatchers.IO) {
         val root = DocumentFile.fromTreeUri(getApplication(), treeUri)
             ?: return@withContext FolderImportResult()
@@ -195,8 +205,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    /** Делает выбранный трек текущим и запускает его воспроизведение. */
     fun openTrack(track: Track) {
         viewModelScope.launch {
+            // Если пользователь нажал на уже загруженный трек, не начинаем его
+            // заново с 0: просто оставляем текущее воспроизведение.
             val shouldRestart = !playerController.hasTrackLoaded(track.id)
             repository.selectTrack(track.id)
             playerController.playTrack(track, restart = shouldRestart)
@@ -206,6 +219,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Переключает play/pause для уже выбранного трека. */
     fun togglePlayback() {
         val track = uiState.value.currentTrack ?: return
         if (playerController.hasTrackLoaded(track.id)) {
@@ -215,78 +229,93 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Передаёт новое значение позиции в контроллер плеера. */
     fun seekTo(positionMs: Long) {
         playerController.seekTo(positionMs)
     }
 
+    /** Воспроизводит предыдущий трек относительно текущего состояния списка. */
     fun playPrevious() {
         playAdjacentTrack(offset = -1)
     }
 
+    /** Воспроизводит следующий трек относительно текущего состояния списка. */
     fun playNext() {
         playAdjacentTrack(offset = 1)
     }
 
+    /** Включает или выключает случайный порядок воспроизведения. */
     fun toggleShuffle() {
         shuffleEnabled.value = !shuffleEnabled.value
     }
 
+    /** Включает или выключает повтор текущего трека. */
     fun toggleRepeatOne() {
         val enabled = !repeatOneEnabled.value
         repeatOneEnabled.value = enabled
         playerController.setRepeatOneEnabled(enabled)
     }
 
+    /** Делает выбранный пресет активным в репозитории и на экране плеера. */
     fun applyPreset(presetId: String) {
         viewModelScope.launch {
             repository.applyPreset(presetId)
         }
     }
 
+    /** Создаёт новый черновик пресета для экрана эквалайзера. */
     fun createNewPresetDraft() {
         viewModelScope.launch {
             repository.createDraftPreset()
         }
     }
 
+    /** Подготавливает новый черновик пресета в suspend-контексте. */
     suspend fun prepareNewPresetDraft() {
         repository.createDraftPreset()
     }
 
+    /** Гарантирует, что у экрана эквалайзера есть активный редактируемый пресет. */
     fun ensureEditablePreset() {
         viewModelScope.launch {
             repository.ensureActivePreset()
         }
     }
 
+    /** Переключает активный черновик на редактирование существующего пресета. */
     fun editPreset(presetId: String) {
         viewModelScope.launch {
             repository.editPreset(presetId)
         }
     }
 
+    /** Подготавливает существующий пресет к редактированию до открытия экрана Mixer. */
     suspend fun preparePresetForEditing(presetId: String) {
         repository.editPreset(presetId)
     }
 
+    /** Обновляет название активного черновика пресета. */
     fun updatePresetName(name: String) {
         viewModelScope.launch {
             repository.updateActivePresetName(name)
         }
     }
 
+    /** Обновляет модель наушников у активного черновика пресета. */
     fun updatePresetModel(model: String) {
         viewModelScope.launch {
             repository.updateActivePresetModel(model)
         }
     }
 
+    /** Изменяет усиление конкретной полосы эквалайзера в активном пресете. */
     fun updateBand(index: Int, gain: Int) {
         viewModelScope.launch {
             repository.updateActiveBand(index, gain)
         }
     }
 
+    /** Применяет текущие значения полос прямо к аудиосессии без обязательного сохранения. */
     fun applyCurrentMix() {
         viewModelScope.launch {
             repository.ensureActivePreset()
@@ -294,6 +323,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Валидирует и сохраняет активный пресет в локальную базу. */
     suspend fun savePreset(): SavePresetResult {
         val preset = uiState.value.activePreset ?: return SavePresetResult.NO_DRAFT
         val hasName = preset.name.isNotBlank()
@@ -308,6 +338,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return if (isNewPreset) SavePresetResult.CREATED else SavePresetResult.UPDATED
     }
 
+    /** Удаляет пресет, если он существует в текущем списке. */
     suspend fun deletePreset(presetId: String): DeletePresetResult {
         val presetExists = uiState.value.presets.any { it.id == presetId }
         if (!presetExists) return DeletePresetResult.NOT_FOUND
@@ -315,16 +346,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return DeletePresetResult.DELETED
     }
 
+    /** Переключает флаг A/B теста, который пока используется как заготовка интерфейса. */
     fun setAbTestEnabled(enabled: Boolean) {
         viewModelScope.launch {
             repository.setAbTestEnabled(enabled)
         }
     }
 
+    /** Передаёт экранное состояние visualizer в контроллер плеера. */
     fun setAudioVisualizationEnabled(enabled: Boolean, permissionGranted: Boolean) {
         playerController.setVisualizationEnabled(enabled, permissionGranted)
     }
 
+    /** Пытается дозагрузить обложку, если у текущего трека она ещё не сохранена локально. */
     fun refreshCurrentTrackArtworkIfMissing() {
         val track = uiState.value.currentTrack ?: return
         if (track.artworkUri.isNullOrBlank()) {
@@ -334,6 +368,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Выбирает соседний трек или случайный трек в зависимости от режима shuffle. */
     private fun playAdjacentTrack(offset: Int) {
         val state = uiState.value
         val currentTrack = state.currentTrack ?: return

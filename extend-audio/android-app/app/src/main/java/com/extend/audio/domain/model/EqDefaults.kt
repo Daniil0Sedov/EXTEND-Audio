@@ -1,8 +1,11 @@
 package com.extend.audio.domain.model
 
+/** Стандартные полосы эквалайзера и функции нормализации пользовательских настроек. */
+
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+/** Справочник стандартных полос и преобразований для эквалайзера приложения. */
 object EqDefaults {
     private val defaultBandDefinitions: List<BandDefinition> = listOf(
         BandDefinition("60 Hz", 60f),
@@ -14,10 +17,12 @@ object EqDefaults {
 
     val defaultBandLabels: List<String> = defaultBandDefinitions.map { definition -> definition.label }
 
+    /** Возвращает исходный набор полос эквалайзера с нулевым усилением. */
     fun defaultBands(): List<EqSetting> {
         return defaultBandDefinitions.map { definition -> EqSetting(definition.label, 0) }
     }
 
+    /** Приводит произвольный набор полос к стандартной 5-полосной схеме приложения. */
     fun normalizeBands(input: List<EqSetting>): List<EqSetting> {
         if (input.isEmpty()) return defaultBands()
 
@@ -55,6 +60,7 @@ object EqDefaults {
         }
     }
 
+    /** Преобразует текстовую подпись частоты вида `60 Hz` или `3.6 kHz` в число. */
     fun parseFrequencyHz(label: String): Float? {
         val normalized = label.trim().lowercase().replace(",", ".")
         return when {
@@ -70,11 +76,13 @@ object EqDefaults {
         }
     }
 
+    /** Внутреннее описание стандартной полосы эквалайзера. */
     private data class BandDefinition(
         val label: String,
         val frequencyHz: Float,
     )
 
+    /** Внутренняя модель распарсенной пользовательской полосы с числовой частотой. */
     private data class ParsedBand(
         val frequencyHz: Float,
         val gain: Int,

@@ -1,5 +1,7 @@
 package com.extend.audio.data.database
 
+/** DAO для чтения и сохранения полос эквалайзера, относящихся к пресету. */
+
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy

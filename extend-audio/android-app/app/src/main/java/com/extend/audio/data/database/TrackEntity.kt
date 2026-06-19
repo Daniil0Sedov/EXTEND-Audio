@@ -1,5 +1,7 @@
 package com.extend.audio.data.database
 
+/** Сущность трека в БД: метаданные файла, длительность и путь к обложке. */
+
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,5 +1,7 @@
 package com.extend.audio
 
+/** Точка инициализации приложения: здесь создаются общие зависимости для всего MVP. */
+
 import android.app.Application
 import androidx.room.Room
 import com.extend.audio.data.database.AppDatabase

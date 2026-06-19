@@ -1,5 +1,7 @@
 package com.extend.audio.navigation
 
+/** Централизованный список экранов для нижней навигации и скрытых fragment-маршрутов. */
+
 import com.extend.audio.R
 
 object AppDestinations {

@@ -1,5 +1,7 @@
 package com.extend.audio.ui.player
 
+/** Экран плеера с прогрессом трека, пресетом и визуальными аудиоэффектами. */
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+/** Экран плеера, который связывает управление треком, прогресс и визуальные эффекты. */
 class PlayerFragment : Fragment() {
 
     private var _binding: FragmentPlayerBinding? = null
@@ -34,16 +37,20 @@ class PlayerFragment : Fragment() {
     private var isUserSeeking = false
     private var hasVisualizerPermission = false
     private var hasRequestedVisualizerPermission = false
+    // Отдельно храним флаг, нужна ли сейчас визуализация, чтобы корректно
+    // возвращать пульсацию после сворачивания и повторного открытия экрана.
     private var shouldCaptureVisualization = false
     private var lastBoundArtworkKey: String? = null
     private var lastArtworkRefreshTrackId: String? = null
 
+    /** Запрашивает доступ к visualizer и после ответа заново синхронизирует пульсацию. */
     private val audioPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             hasVisualizerPermission = granted
             syncVisualizerCaptureState()
         }
 
+    /** Создаёт view плеера через ViewBinding. */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -53,6 +60,7 @@ class PlayerFragment : Fragment() {
         return binding.root
     }
 
+    /** Настраивает кнопки управления треком и подписки на состояние плеера. */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -152,18 +160,24 @@ class PlayerFragment : Fragment() {
         }
     }
 
+    /** Возобновляет visualizer, когда пользователь снова открывает экран плеера. */
     override fun onStart() {
         super.onStart()
+        // Включаем захват только когда экран плеера реально активен.
         shouldCaptureVisualization = true
         syncVisualizerCaptureState()
     }
 
+    /** Останавливает visualizer, когда экран уходит в фон. */
     override fun onStop() {
+        // При уходе с экрана обязательно останавливаем visualizer, чтобы не
+        // держать лишние системные ресурсы в фоне.
         shouldCaptureVisualization = false
         viewModel.setAudioVisualizationEnabled(false, hasVisualizerPermission)
         super.onStop()
     }
 
+    /** Очищает ссылки на view и связанные с ними временные состояния. */
     override fun onDestroyView() {
         lastBoundArtworkKey = null
         lastArtworkRefreshTrackId = null
@@ -171,10 +185,12 @@ class PlayerFragment : Fragment() {
         super.onDestroyView()
     }
 
+    /** Передаёт в ViewModel актуальное состояние необходимости аудиовизуализации. */
     private fun syncVisualizerCaptureState() {
         viewModel.setAudioVisualizationEnabled(shouldCaptureVisualization, hasVisualizerPermission)
     }
 
+    /** Проверяет, выдано ли разрешение RECORD_AUDIO для работы visualizer. */
     private fun hasRecordAudioPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             requireContext(),
@@ -182,6 +198,7 @@ class PlayerFragment : Fragment() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    /** Обновляет glow-эффект вокруг карточки текущего трека. */
     private fun updateCoverGlow(isEnabled: Boolean, isPlaying: Boolean, level: Float) {
         binding.viewCoverGlow.render(
             enabled = isEnabled,
@@ -190,6 +207,7 @@ class PlayerFragment : Fragment() {
         )
     }
 
+    /** Привязывает основное состояние плеера к текстам, кнопкам, seekbar и обложке. */
     private fun bindScreenState(state: PlayerScreenState) {
         val currentTrack = state.currentTrack
         val currentPreset = state.currentPresetName ?: getString(R.string.no_saved_presets)
@@ -284,6 +302,7 @@ class PlayerFragment : Fragment() {
         }
     }
 
+    /** Облегчённое состояние экрана плеера без тяжёлых лишних полей из общего uiState. */
     private data class PlayerScreenState(
         val tracks: List<Track>,
         val currentTrack: Track?,
@@ -296,6 +315,7 @@ class PlayerFragment : Fragment() {
         val isRepeatOneEnabled: Boolean,
     )
 
+    /** Отдельное состояние для анимаций, чтобы не перерисовывать весь экран слишком часто. */
     private data class PlayerGlowState(
         val hasTrack: Boolean,
         val isPlaying: Boolean,

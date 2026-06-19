@@ -1,5 +1,7 @@
 package com.extend.audio.ui.mixer
 
+/** Экран эквалайзера для создания, редактирования и применения пользовательского пресета. */
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,8 +28,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+/** Экран редактирования пресета и ручной настройки полос эквалайзера. */
 class MixerFragment : Fragment() {
 
+    /** Вспомогательная пара для хранения binding одной колонки эквалайзера. */
     private data class BandColumn(
         val binding: ItemMixerBandBinding,
     )
@@ -41,6 +45,7 @@ class MixerFragment : Fragment() {
     private var isBindingSliders = false
     private var isBindingMeta = false
 
+    /** Создаёт view экрана эквалайзера через ViewBinding. */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,6 +55,7 @@ class MixerFragment : Fragment() {
         return binding.root
     }
 
+    /** Настраивает поля пресета, ползунки и подписку на активный черновик. */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -91,12 +97,14 @@ class MixerFragment : Fragment() {
         }
     }
 
+    /** Очищает ссылки на колонки и binding при уничтожении view. */
     override fun onDestroyView() {
         bandColumns = emptyList()
         _binding = null
         super.onDestroyView()
     }
 
+    /** Динамически создаёт набор полос эквалайзера и их обработчики. */
     private fun buildBandColumns(inflater: LayoutInflater) {
         binding.layoutBandsContainer.removeAllViews()
         bandColumns = EqDefaults.defaultBandLabels.mapIndexed { index, _ ->
@@ -116,6 +124,7 @@ class MixerFragment : Fragment() {
         }
     }
 
+    /** Заполняет метаданные пресета: название, модель и режим создания/редактирования. */
     private fun bindPresetMeta(preset: Preset) {
         isBindingMeta = true
         if (binding.editPresetName.text?.toString() != preset.name) {
@@ -140,6 +149,7 @@ class MixerFragment : Fragment() {
             }
     }
 
+    /** Подставляет значения усиления в полосы и обновляет подписи на ползунках. */
     private fun bindBands(preset: Preset) {
         val normalizedBands = EqDefaults.normalizeBands(preset.bands)
 
@@ -154,6 +164,7 @@ class MixerFragment : Fragment() {
         isBindingSliders = false
     }
 
+    /** Сохраняет или обновляет пресет с учётом валидации обязательных полей. */
     private fun savePreset() {
         viewLifecycleOwner.lifecycleScope.launch {
             val result = viewModel.savePreset()
@@ -203,6 +214,7 @@ class MixerFragment : Fragment() {
         }
     }
 
+    /** Создаёт пустой локальный пресет, если активного черновика пока нет. */
     private fun buildFallbackPreset() = Preset(
         id = "",
         name = "",

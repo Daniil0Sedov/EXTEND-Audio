@@ -1,5 +1,7 @@
 package com.extend.audio.player
 
+/** Обёртка над ExoPlayer, Equalizer и Visualizer для управления воспроизведением. */
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.media.audiofx.Equalizer
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+/** Контроллер воспроизведения, который инкапсулирует работу ExoPlayer и аудиоэффектов. */
 class PlayerController(context: Context) {
 
     private val player = ExoPlayer.Builder(context).build()
@@ -53,6 +56,7 @@ class PlayerController(context: Context) {
     val visualizerLevel: StateFlow<Float> = _visualizerLevel.asStateFlow()
     val visualizerBands: StateFlow<List<Float>> = _visualizerBands.asStateFlow()
 
+    /** Слушает жизненный цикл плеера и синхронизирует публичное состояние для UI. */
     private val listener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
@@ -73,6 +77,7 @@ class PlayerController(context: Context) {
         }
     }
 
+    /** Запускает фоновое обновление прогресса и плавное затухание visualizer при паузе. */
     init {
         player.addListener(listener)
 
@@ -87,9 +92,13 @@ class PlayerController(context: Context) {
         }
     }
 
+    /** Проверяет, загружен ли уже этот трек в ExoPlayer. */
     fun hasTrackLoaded(trackId: String?): Boolean = trackId != null && loadedTrackId == trackId
 
+    /** Загружает трек в плеер или переиспользует текущий media item при повторном выборе. */
     fun playTrack(track: Track, restart: Boolean = true) {
+        // Не пересоздаём media item, если это тот же самый трек: так мы не
+        // сбрасываем позицию без необходимости и избегаем лишней подготовки плеера.
         if (loadedTrackId == track.id && !restart) {
             player.play()
             updateProgress()
@@ -122,6 +131,7 @@ class PlayerController(context: Context) {
         updateProgress()
     }
 
+    /** Переключает состояние play/pause без смены текущего трека. */
     fun togglePlayback() {
         if (player.isPlaying) {
             player.pause()
@@ -131,11 +141,13 @@ class PlayerController(context: Context) {
         updateProgress()
     }
 
+    /** Перемещает позицию воспроизведения на указанное количество миллисекунд. */
     fun seekTo(positionMs: Long) {
         player.seekTo(positionMs.coerceAtLeast(0L))
         updateProgress()
     }
 
+    /** Включает или выключает режим повторения одного трека. */
     fun setRepeatOneEnabled(enabled: Boolean) {
         player.repeatMode = if (enabled) {
             Player.REPEAT_MODE_ONE
@@ -144,6 +156,7 @@ class PlayerController(context: Context) {
         }
     }
 
+    /** Управляет захватом данных visualizer с учётом разрешения и видимости экрана. */
     fun setVisualizationEnabled(enabled: Boolean, permissionGranted: Boolean) {
         visualizationEnabled = enabled
         visualizationPermissionGranted = permissionGranted
@@ -156,11 +169,13 @@ class PlayerController(context: Context) {
         }
     }
 
+    /** Сохраняет новые настройки EQ и пытается сразу применить их к текущей аудиосессии. */
     fun setEqualizerSettings(settings: List<EqSetting>) {
         pendingEqSettings = settings
         applyEqualizerSettings()
     }
 
+    /** Освобождает все ресурсы плеера и завершает внутренние coroutine-задачи. */
     fun release() {
         player.removeListener(listener)
         releaseEqualizer()
@@ -169,12 +184,14 @@ class PlayerController(context: Context) {
         scope.cancel()
     }
 
+    /** Обновляет публичные значения позиции, длительности и флага воспроизведения. */
     private fun updateProgress() {
         _positionMs.value = player.currentPosition.coerceAtLeast(0L)
         _durationMs.value = player.duration.takeIf { it > 0L } ?: 0L
         _isPlaying.value = player.isPlaying
     }
 
+    /** Подключает системный Equalizer к текущей аудиосессии ExoPlayer. */
     private fun attachEqualizer(audioSessionId: Int) {
         if (audioSessionId <= 0) return
         if (equalizerAudioSessionId == audioSessionId && equalizer != null) {
@@ -198,6 +215,7 @@ class PlayerController(context: Context) {
         applyEqualizerSettings()
     }
 
+    /** Подключает Visualizer к текущей аудиосессии, если экрану нужны аудиоданные. */
     @SuppressLint("MissingPermission")
     private fun attachVisualizer(audioSessionId: Int) {
         if (!visualizationEnabled || !visualizationPermissionGranted || audioSessionId <= 0) {
@@ -246,6 +264,7 @@ class PlayerController(context: Context) {
         }
     }
 
+    /** Преобразует пользовательские полосы EQ в реальные полосы устройства и применяет их. */
     private fun applyEqualizerSettings() {
         val activeEqualizer = equalizer ?: return
 
@@ -289,6 +308,7 @@ class PlayerController(context: Context) {
         }
     }
 
+    /** Преобразует FFT-данные в более сглаженные значения для UI-анимаций. */
     private fun updateVisualizerBands(fft: ByteArray?) {
         if (fft == null || fft.size < 4) return
 
@@ -328,6 +348,7 @@ class PlayerController(context: Context) {
         ).coerceIn(0f, 1f)
     }
 
+    /** Постепенно затухает visualizer, когда звук временно не воспроизводится. */
     private fun decayVisualizerData() {
         val decayedBands = _visualizerBands.value.map { value ->
             (value * 0.8f).takeIf { it > 0.012f } ?: 0f
@@ -336,6 +357,7 @@ class PlayerController(context: Context) {
         _visualizerLevel.value = (_visualizerLevel.value * 0.76f).takeIf { it > 0.02f } ?: 0f
     }
 
+    /** Безопасно освобождает системный Equalizer. */
     private fun releaseEqualizer() {
         try {
             equalizer?.release()
@@ -347,6 +369,7 @@ class PlayerController(context: Context) {
         _isEqualizerAvailable.value = false
     }
 
+    /** Безопасно освобождает системный Visualizer. */
     private fun releaseVisualizer() {
         try {
             visualizer?.release()
@@ -357,6 +380,7 @@ class PlayerController(context: Context) {
         visualizerAudioSessionId = null
     }
 
+    /** Сбрасывает уровни visualizer, когда нет активной аудиосессии. */
     private fun resetVisualizerData() {
         _visualizerLevel.value = 0f
         _visualizerBands.value = List(VISUALIZER_SEGMENT_COUNT) { 0f }

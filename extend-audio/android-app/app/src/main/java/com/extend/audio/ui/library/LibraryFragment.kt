@@ -1,5 +1,7 @@
 package com.extend.audio.ui.library
 
+/** Экран библиотеки: импорт папки, поиск по трекам и переход на экран плеера. */
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -24,6 +26,7 @@ import com.extend.audio.domain.model.Track
 import com.extend.audio.ui.main.MainViewModel
 import kotlinx.coroutines.launch
 
+/** Экран библиотеки с импортом папки, поиском и открытием выбранного трека. */
 class LibraryFragment : Fragment() {
 
     companion object {
@@ -90,6 +93,7 @@ class LibraryFragment : Fragment() {
             }
         }
 
+    /** Создаёт корневой view библиотеки через ViewBinding. */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -99,6 +103,7 @@ class LibraryFragment : Fragment() {
         return binding.root
     }
 
+    /** Инициализирует список треков, поиск и обработку аргумента автозапуска импорта. */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -124,15 +129,18 @@ class LibraryFragment : Fragment() {
         }
     }
 
+    /** Очищает binding при уничтожении view фрагмента. */
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
     }
 
+    /** Открывает системный выбор папки для импорта локальной музыки. */
     private fun launchFolderPicker() {
         openFolderLauncher.launch(null)
     }
 
+    /** Подписывается на общее состояние приложения и обновляет список треков на экране. */
     private fun observeUi() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -149,6 +157,7 @@ class LibraryFragment : Fragment() {
         }
     }
 
+    /** Фильтрует библиотеку по поисковому запросу и переключает пустые состояния. */
     private fun renderTracks(allTracks: List<Track>) {
         val normalizedQuery = searchQuery.trim()
         val filteredTracks = if (normalizedQuery.isBlank()) {
@@ -174,6 +183,7 @@ class LibraryFragment : Fragment() {
         }
     }
 
+    /** Открывает выбранный трек и переводит пользователя на экран плеера. */
     private fun onTrackSelected(track: Track) {
         viewModel.openTrack(track)
         findNavController().navigate(R.id.playerFragment)

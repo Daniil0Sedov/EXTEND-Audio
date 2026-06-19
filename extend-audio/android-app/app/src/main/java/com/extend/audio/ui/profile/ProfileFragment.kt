@@ -1,5 +1,7 @@
 package com.extend.audio.ui.profile
 
+/** Упрощённый профиль со статистикой локальной MVP-сессии пользователя. */
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +16,7 @@ import com.extend.audio.databinding.FragmentProfileBinding
 import com.extend.audio.ui.main.MainViewModel
 import kotlinx.coroutines.launch
 
+/** Упрощённый экран профиля с локальной статистикой по трекам и пресетам. */
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
@@ -21,6 +24,7 @@ class ProfileFragment : Fragment() {
 
     private val viewModel: MainViewModel by activityViewModels()
 
+    /** Создаёт view профиля через ViewBinding. */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -30,6 +34,7 @@ class ProfileFragment : Fragment() {
         return binding.root
     }
 
+    /** Подписывается на состояние приложения и показывает локальную статистику пользователя. */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -50,6 +55,7 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    /** Очищает binding при уничтожении view фрагмента. */
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()

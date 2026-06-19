@@ -1,5 +1,7 @@
 package com.extend.audio.ui.player
 
+/** Кастомный view для пульсации вокруг центральной кнопки воспроизведения. */
+
 import android.content.Context
 import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
