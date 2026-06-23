@@ -3,7 +3,9 @@
     <string name="app_name">EXTEND Audio</string>
     <string name="welcome_title">Создайте свой пресет под наушники и сразу проверьте его на своей музыке.</string>
     <string name="welcome_subtitle">EXTEND Audio сфокусирован на MVP-сценарии: создать пресет под модель наушников, загрузить папку с музыкой и слушать локально.</string>
-    <string name="scan_local_music">Загрузить музыку</string>
+    <string name="welcome_hero_title">Настрой звук под свои наушники</string>
+    <string name="welcome_hero_subtitle">Импортируйте папку с музыкой, выберите модель наушников и слушайте треки с подходящим пресетом.</string>
+    <string name="scan_local_music">Импортировать музыку</string>
     <string name="skip_for_now">Пропустить пока</string>
     <string name="library_title">Библиотека</string>
     <string name="library_subtitle">Выберите одну папку с музыкой, и EXTEND Audio загрузит из неё все поддерживаемые треки.</string>
@@ -31,6 +33,7 @@
     <string name="profile_title">Профиль</string>
     <string name="profile_subtitle">Локальная статистика MVP-сессии.</string>
     <string name="player_title">Плеер</string>
+    <string name="player_header">Сейчас играет</string>
     <string name="ab_test_label">A/B тест</string>
     <string name="ab_test_hint">Заготовка для будущего сравнения DSP, пока не влияет на звук.</string>
     <string name="back">Назад</string>
@@ -46,6 +49,8 @@
     <string name="device_model">Активная модель: %1$s</string>
     <string name="library_track_count">Треков: %1$d</string>
     <string name="player_preset">Пресет: %1$s</string>
+    <string name="player_output_label">Активный вывод</string>
+    <string name="player_active_preset_status">Активный пресет: %1$s</string>
     <string name="mixer_ready">Текущий черновик пресета активен для воспроизведения.</string>
     <string name="mixer_saved">Пресет сохранён в локальную библиотеку.</string>
     <string name="mixer_updated">Пресет обновлён в локальной библиотеке.</string>
@@ -96,4 +101,6 @@
     <string name="repeat_track">Повтор трека</string>
     <string name="track_item_playing">Играет</string>
     <string name="track_item_selected">Выбран</string>
+    <string name="notification_channel_name">Воспроизведение EXTEND Audio</string>
+    <string name="notification_channel_description">Управление текущим треком из системной шторки</string>
 </resources>

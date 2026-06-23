@@ -118,6 +118,7 @@ class PlayerFragment : Fragment() {
                                 tracks = state.tracks,
                                 currentTrack = state.currentTrack,
                                 currentPresetName = state.activePreset?.name?.takeIf { it.isNotBlank() },
+                                currentPresetModel = state.activePreset?.headphoneModel?.takeIf { it.isNotBlank() },
                                 isPlaying = state.isPlaying,
                                 playbackPositionMs = state.playbackPositionMs,
                                 playbackDurationMs = state.playbackDurationMs,
@@ -211,20 +212,14 @@ class PlayerFragment : Fragment() {
     private fun bindScreenState(state: PlayerScreenState) {
         val currentTrack = state.currentTrack
         val currentPreset = state.currentPresetName ?: getString(R.string.no_saved_presets)
+        val currentOutput = state.currentPresetModel ?: currentPreset
         val currentTrackIndex = state.tracks.indexOfFirst { it.id == currentTrack?.id }
 
         binding.textTrackTitle.text =
             currentTrack?.title ?: getString(R.string.no_track_selected)
         binding.textTrackArtist.text =
             currentTrack?.artist ?: getString(R.string.unknown_artist)
-        binding.textPreset.text = getString(R.string.player_preset, currentPreset)
-        binding.textEqualizerStatus.text = getString(
-            if (state.isEqualizerAvailable) {
-                R.string.equalizer_active
-            } else {
-                R.string.equalizer_unavailable
-            }
-        )
+        binding.textPreset.text = currentOutput
         binding.textCurrentTime.text = formatDuration(state.playbackPositionMs)
         binding.textDuration.text = formatDuration(state.playbackDurationMs)
 
@@ -307,6 +302,7 @@ class PlayerFragment : Fragment() {
         val tracks: List<Track>,
         val currentTrack: Track?,
         val currentPresetName: String?,
+        val currentPresetModel: String?,
         val isPlaying: Boolean,
         val playbackPositionMs: Long,
         val playbackDurationMs: Long,

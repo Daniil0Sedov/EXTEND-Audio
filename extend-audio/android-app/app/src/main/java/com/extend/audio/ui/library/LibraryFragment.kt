@@ -43,6 +43,7 @@ class LibraryFragment : Fragment() {
     private var latestTracks: List<Track> = emptyList()
     private var currentTrackId: String? = null
     private var isPlaybackActive: Boolean = false
+    private var missingArtworkRecoveryRequested: Boolean = false
 
     private val openFolderLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -152,6 +153,14 @@ class LibraryFragment : Fragment() {
                         getString(R.string.library_track_count, state.tracks.size)
                     renderTracks(state.tracks)
                     trackAdapter.updatePlaybackState(currentTrackId, isPlaybackActive)
+
+                    if (!missingArtworkRecoveryRequested &&
+                        state.tracks.isNotEmpty() &&
+                        state.tracks.any { it.artworkUri.isNullOrBlank() }
+                    ) {
+                        missingArtworkRecoveryRequested = true
+                        viewModel.refreshMissingArtworkForLibrary()
+                    }
                 }
             }
         }

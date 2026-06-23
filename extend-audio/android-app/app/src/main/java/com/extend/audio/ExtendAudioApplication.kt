@@ -3,6 +3,7 @@ package com.extend.audio
 /** Точка инициализации приложения: здесь создаются общие зависимости для всего MVP. */
 
 import android.app.Application
+import androidx.media3.session.MediaSession
 import androidx.room.Room
 import com.extend.audio.data.database.AppDatabase
 import com.extend.audio.data.local.RoomAudioRepository
@@ -33,7 +34,12 @@ class ExtendAudioApplication : Application() {
         PlayerController(this)
     }
 
+    val mediaSession: MediaSession by lazy {
+        MediaSession.Builder(this, playerController.exoPlayer).build()
+    }
+
     override fun onTerminate() {
+        mediaSession.release()
         playerController.release()
         super.onTerminate()
     }

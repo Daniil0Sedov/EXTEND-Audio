@@ -4,9 +4,12 @@ package com.extend.audio.player
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.media.audiofx.Equalizer
 import android.media.audiofx.Visualizer
 import android.net.Uri
+import androidx.core.content.ContextCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -14,6 +17,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.extend.audio.domain.model.EqDefaults
 import com.extend.audio.domain.model.EqSetting
 import com.extend.audio.domain.model.Track
+import java.io.File
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +34,7 @@ import kotlinx.coroutines.launch
 /** Контроллер воспроизведения, который инкапсулирует работу ExoPlayer и аудиоэффектов. */
 class PlayerController(context: Context) {
 
+    private val appContext = context.applicationContext
     private val player = ExoPlayer.Builder(context).build()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -41,6 +46,9 @@ class PlayerController(context: Context) {
     private var loadedTrackId: String? = null
     private var visualizationEnabled: Boolean = false
     private var visualizationPermissionGranted: Boolean = false
+    private var onPreviousRequested: (() -> Unit)? = null
+    private var onNextRequested: (() -> Unit)? = null
+    private var onTrackChanged: ((String) -> Unit)? = null
 
     private val _isPlaying = MutableStateFlow(false)
     private val _positionMs = MutableStateFlow(0L)
@@ -55,6 +63,7 @@ class PlayerController(context: Context) {
     val isEqualizerAvailable: StateFlow<Boolean> = _isEqualizerAvailable.asStateFlow()
     val visualizerLevel: StateFlow<Float> = _visualizerLevel.asStateFlow()
     val visualizerBands: StateFlow<List<Float>> = _visualizerBands.asStateFlow()
+    val exoPlayer: ExoPlayer get() = player
 
     /** Слушает жизненный цикл плеера и синхронизирует публичное состояние для UI. */
     private val listener = object : Player.Listener {
@@ -66,6 +75,13 @@ class PlayerController(context: Context) {
         override fun onAudioSessionIdChanged(audioSessionId: Int) {
             attachEqualizer(audioSessionId)
             attachVisualizer(audioSessionId)
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            val mediaId = mediaItem?.mediaId
+            if (mediaId.isNullOrBlank()) return
+            loadedTrackId = mediaId
+            onTrackChanged?.invoke(mediaId)
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -96,34 +112,48 @@ class PlayerController(context: Context) {
     fun hasTrackLoaded(trackId: String?): Boolean = trackId != null && loadedTrackId == trackId
 
     /** Загружает трек в плеер или переиспользует текущий media item при повторном выборе. */
-    fun playTrack(track: Track, restart: Boolean = true) {
+    fun playTrack(
+        track: Track,
+        queue: List<Track> = listOf(track),
+        restart: Boolean = true,
+    ) {
+        ensurePlaybackServiceStarted()
+
         // Не пересоздаём media item, если это тот же самый трек: так мы не
         // сбрасываем позицию без необходимости и избегаем лишней подготовки плеера.
-        if (loadedTrackId == track.id && !restart) {
+        if (loadedTrackId == track.id && !restart && isSameQueue(queue)) {
             player.play()
             updateProgress()
             return
         }
 
-        if (loadedTrackId == track.id && restart) {
+        if (loadedTrackId == track.id && restart && isSameQueue(queue)) {
             player.seekTo(0)
             player.play()
             updateProgress()
             return
         }
 
-        val mediaItem = MediaItem.Builder()
-            .setUri(Uri.parse(track.uri))
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(track.title)
-                    .setArtist(track.artist)
-                    .build()
-            )
-            .build()
+        val items = queue.map { queueTrack ->
+            MediaItem.Builder()
+                .setMediaId(queueTrack.id)
+                .setUri(Uri.parse(queueTrack.uri))
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(queueTrack.title)
+                        .setArtist(queueTrack.artist)
+                        .setArtworkData(
+                            loadArtworkBytes(queueTrack.artworkUri),
+                            MediaMetadata.PICTURE_TYPE_FRONT_COVER,
+                        )
+                        .build()
+                )
+                .build()
+        }
+        val targetIndex = queue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
 
         loadedTrackId = track.id
-        player.setMediaItem(mediaItem)
+        player.setMediaItems(items, targetIndex, C.TIME_UNSET)
         player.prepare()
         player.playWhenReady = true
         attachEqualizer(player.audioSessionId)
@@ -136,6 +166,7 @@ class PlayerController(context: Context) {
         if (player.isPlaying) {
             player.pause()
         } else if (player.mediaItemCount > 0) {
+            ensurePlaybackServiceStarted()
             player.play()
         }
         updateProgress()
@@ -173,6 +204,30 @@ class PlayerController(context: Context) {
     fun setEqualizerSettings(settings: List<EqSetting>) {
         pendingEqSettings = settings
         applyEqualizerSettings()
+    }
+
+    /** Подключает callbacks навигации, чтобы уведомление и другие источники управляли очередью. */
+    fun setNavigationCallbacks(
+        onPreviousRequested: () -> Unit,
+        onNextRequested: () -> Unit,
+    ) {
+        this.onPreviousRequested = onPreviousRequested
+        this.onNextRequested = onNextRequested
+    }
+
+    /** Подключает callback, чтобы UI узнал о смене трека из уведомления или гарнитуры. */
+    fun setTrackChangedCallback(onTrackChanged: (String) -> Unit) {
+        this.onTrackChanged = onTrackChanged
+    }
+
+    /** Запрашивает переход к предыдущему треку через внешнюю логику очереди приложения. */
+    fun requestPreviousTrack() {
+        onPreviousRequested?.invoke()
+    }
+
+    /** Запрашивает переход к следующему треку через внешнюю логику очереди приложения. */
+    fun requestNextTrack() {
+        onNextRequested?.invoke()
     }
 
     /** Освобождает все ресурсы плеера и завершает внутренние coroutine-задачи. */
@@ -384,6 +439,31 @@ class PlayerController(context: Context) {
     private fun resetVisualizerData() {
         _visualizerLevel.value = 0f
         _visualizerBands.value = List(VISUALIZER_SEGMENT_COUNT) { 0f }
+    }
+
+    /** Поднимает foreground-service, чтобы Android показал media-уведомление. */
+    private fun ensurePlaybackServiceStarted() {
+        val intent = Intent(appContext, PlaybackService::class.java)
+        ContextCompat.startForegroundService(appContext, intent)
+    }
+
+    /** Проверяет, совпадает ли новая очередь с уже загруженной в ExoPlayer. */
+    private fun isSameQueue(queue: List<Track>): Boolean {
+        if (player.mediaItemCount != queue.size) return false
+        return queue.indices.all { index ->
+            player.getMediaItemAt(index).mediaId == queue[index].id
+        }
+    }
+
+    /** Читает локально сохранённую обложку как байты, чтобы MediaSession мог отдать её SystemUI. */
+    private fun loadArtworkBytes(artworkUri: String?): ByteArray? {
+        val sourceUri = artworkUri?.let(Uri::parse) ?: return null
+        return runCatching {
+            when (sourceUri.scheme) {
+                "file" -> File(checkNotNull(sourceUri.path)).takeIf { it.exists() }?.readBytes()
+                else -> appContext.contentResolver.openInputStream(sourceUri)?.use { it.readBytes() }
+            }
+        }.getOrNull()
     }
 
     private companion object {

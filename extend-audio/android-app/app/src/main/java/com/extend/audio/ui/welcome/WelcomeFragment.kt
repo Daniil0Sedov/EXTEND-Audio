@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -34,6 +35,8 @@ class WelcomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        startIntroAnimations()
+
         val mainFlowNavOptions = navOptions {
             popUpTo(R.id.welcomeFragment) {
                 inclusive = true
@@ -50,6 +53,31 @@ class WelcomeFragment : Fragment() {
 
         binding.buttonSkip.setOnClickListener {
             findNavController().navigate(R.id.libraryFragment, null, mainFlowNavOptions)
+        }
+    }
+
+    /** Запускает лёгкие декоративные анимации, чтобы стартовый экран выглядел живее. */
+    private fun startIntroAnimations() {
+        binding.logoContainer.startAnimation(
+            AnimationUtils.loadAnimation(requireContext(), R.anim.welcome_logo_float)
+        )
+
+        listOf(
+            binding.bar1,
+            binding.bar2,
+            binding.bar3,
+            binding.bar4,
+            binding.bar5,
+            binding.bar6,
+            binding.bar7,
+            binding.bar8,
+            binding.bar9,
+            binding.bar10,
+        ).forEachIndexed { index, bar ->
+            bar.postDelayed(
+                { bar.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.welcome_bar_pulse)) },
+                index * 90L
+            )
         }
     }
 

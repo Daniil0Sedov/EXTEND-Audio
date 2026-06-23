@@ -79,7 +79,6 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonEdit"
-            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -87,22 +86,21 @@
             android:layout_weight="1"
             android:text="@string/edit_preset"
             android:textAllCaps="false"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/bg_root"
             app:cornerRadius="16dp"
-            app:strokeColor="@color/brand_orange" />
+            app:backgroundTint="@color/brand_orange" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonDelete"
-            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="@string/delete_preset"
             android:textAllCaps="false"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/bg_root"
             app:cornerRadius="16dp"
-            app:strokeColor="@android:color/holo_red_light" />
+            app:backgroundTint="@android:color/holo_red_light" />
     </LinearLayout>
 
 </LinearLayout>

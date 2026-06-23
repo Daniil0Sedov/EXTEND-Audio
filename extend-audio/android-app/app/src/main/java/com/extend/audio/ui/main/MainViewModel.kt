@@ -6,6 +6,7 @@ import android.app.Application
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
@@ -72,12 +73,40 @@ enum class DeletePresetResult {
 /** Главная ViewModel, которая собирает единое состояние для всех экранов MVP. */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        private const val TAG = "ExtendArtwork"
+        private val SUPPORTED_AUDIO_EXTENSIONS = setOf(
+            "mp3",
+            "wav",
+            "flac",
+            "aac",
+            "m4a",
+            "ogg",
+            "opus",
+        )
+        private val SUPPORTED_ARTWORK_EXTENSIONS = setOf(
+            "png",
+            "jpg",
+            "jpeg",
+            "webp",
+        )
+        private val GENERIC_ARTWORK_NAMES = setOf(
+            "cover",
+            "folder",
+            "front",
+            "artwork",
+            "album",
+            "thumb",
+        )
+    }
+
     private val app = application as ExtendAudioApplication
     private val repository = app.audioRepository
     private val playerController = app.playerController
 
     private val shuffleEnabled = MutableStateFlow(false)
     private val repeatOneEnabled = MutableStateFlow(false)
+    private val artworkRefreshInProgress = MutableStateFlow(false)
 
     /** Общий uiState, собранный из репозитория, плеера и локальных флагов интерфейса. */
     val uiState: StateFlow<MainUiState> = combine(
@@ -157,6 +186,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Подключает активный пресет к реальному эквалайзеру плеера при каждом изменении. */
     init {
+        playerController.setNavigationCallbacks(
+            onPreviousRequested = { playPrevious() },
+            onNextRequested = { playNext() },
+        )
+        playerController.setTrackChangedCallback { trackId ->
+            viewModelScope.launch {
+                repository.selectTrack(trackId)
+            }
+        }
+
         viewModelScope.launch {
             repository.activePreset
                 .map { preset -> preset?.bands ?: emptyList() }
@@ -175,10 +214,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val supportedFiles = mutableListOf<AudioImportCandidate>()
         collectAudioFiles(root, supportedFiles)
 
+        Log.d(TAG, "importFolder: treeUri=$treeUri")
+
         val existingTracksByUri = repository.tracks.value.associateBy { it.uri }
         val tracksToUpsert = mutableListOf<Track>()
         var importedCount = 0
         var updatedCount = 0
+
+        Log.d(TAG, "importFolder: supportedFiles=${supportedFiles.size}")
 
         supportedFiles.forEach { candidate ->
             val existingTrack = existingTracksByUri[candidate.audioFile.uri.toString()]
@@ -198,11 +241,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         repository.importTracks(tracksToUpsert)
+        Log.d(
+            TAG,
+            "importFolder: imported=$importedCount updated=$updatedCount upserted=${tracksToUpsert.size}"
+        )
         FolderImportResult(
             importedCount = importedCount,
             supportedFilesCount = supportedFiles.size,
             updatedCount = updatedCount,
         )
+    }
+
+    /** Фоном дозаполняет обложки для уже импортированных треков, у которых artwork ещё отсутствует. */
+    fun refreshMissingArtworkForLibrary() {
+        if (artworkRefreshInProgress.value) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            artworkRefreshInProgress.value = true
+            try {
+                repository.tracks.value
+                    .filter { it.artworkUri.isNullOrBlank() }
+                    .forEach { track ->
+                        refreshTrackArtwork(track)
+                    }
+            } finally {
+                artworkRefreshInProgress.value = false
+            }
+        }
     }
 
     /** Делает выбранный трек текущим и запускает его воспроизведение. */
@@ -212,7 +277,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // заново с 0: просто оставляем текущее воспроизведение.
             val shouldRestart = !playerController.hasTrackLoaded(track.id)
             repository.selectTrack(track.id)
-            playerController.playTrack(track, restart = shouldRestart)
+            playerController.playTrack(
+                track = track,
+                queue = uiState.value.tracks,
+                restart = shouldRestart,
+            )
             if (track.artworkUri.isNullOrBlank()) {
                 refreshTrackArtwork(track)
             }
@@ -225,7 +294,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (playerController.hasTrackLoaded(track.id)) {
             playerController.togglePlayback()
         } else {
-            playerController.playTrack(track, restart = false)
+            playerController.playTrack(
+                track = track,
+                queue = uiState.value.tracks,
+                restart = false,
+            )
         }
     }
 
@@ -401,6 +474,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         val children = root.listFiles().toList()
         val imageFiles = children.filter { child -> child.isFile && child.isSupportedArtworkFile() }
+        Log.d(
+            TAG,
+            "collectAudioFiles: folder=${root.name} audioCandidates=${children.count { it.isFile && it.isSupportedAudioFile() }} imageFiles=${imageFiles.map { it.name }}"
+        )
         val genericArtwork = imageFiles.firstOrNull { image ->
             val normalizedName = image.name
                 ?.substringBeforeLast('.', "")
@@ -414,6 +491,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             when {
                 child.isFile && child.isSupportedAudioFile() -> {
                     val matchingArtwork = findArtworkForAudio(child, imageFiles) ?: genericArtwork
+                    Log.d(
+                        TAG,
+                        "collectAudioFiles: audio=${child.name} matchedArtwork=${matchingArtwork?.name} genericArtwork=${genericArtwork?.name}"
+                    )
                     collector += AudioImportCandidate(
                         audioFile = child,
                         artworkUri = matchingArtwork?.uri?.toString(),
@@ -475,7 +556,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val trackId = existingTrack?.id ?: UUID.randomUUID().toString()
             val persistedArtworkUri = artworkUri
                 ?.let { source -> persistArtworkLocally(Uri.parse(source), trackId) }
+                ?: retriever.embeddedPicture
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { bytes -> persistEmbeddedArtworkLocally(bytes, trackId) }
                 ?: existingTrack?.artworkUri
+
+            Log.d(
+                TAG,
+                "buildTrackFromFile: file=${file.name} sourceArtwork=$artworkUri persistedArtwork=$persistedArtworkUri trackId=$trackId"
+            )
 
             Track(
                 id = trackId,
@@ -493,11 +582,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun refreshTrackArtwork(track: Track) = withContext(Dispatchers.IO) {
-        val artworkSourceUri = findArtworkForExistingTrack(track) ?: return@withContext
-        val persistedArtworkUri = persistArtworkLocally(artworkSourceUri, track.id) ?: return@withContext
+        val artworkSourceUri = findArtworkForExistingTrack(track)
+        val persistedArtworkUri = when {
+            artworkSourceUri != null -> persistArtworkLocally(artworkSourceUri, track.id)
+            else -> loadEmbeddedArtwork(track)
+        } ?: return@withContext
         val updatedTrack = track.copy(artworkUri = persistedArtworkUri)
+        Log.d(
+            TAG,
+            "refreshTrackArtwork: track=${track.title} source=$artworkSourceUri persisted=$persistedArtworkUri"
+        )
         repository.importTrack(updatedTrack)
-        repository.selectTrack(updatedTrack.id)
+    }
+
+    private fun loadEmbeddedArtwork(track: Track): String? {
+        val audioUri = runCatching { Uri.parse(track.uri) }.getOrNull() ?: return null
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(getApplication(), audioUri)
+            retriever.embeddedPicture
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { bytes -> persistEmbeddedArtworkLocally(bytes, track.id) }
+        } catch (_: Exception) {
+            null
+        } finally {
+            retriever.release()
+        }
     }
 
     private fun findArtworkForExistingTrack(track: Track): Uri? {
@@ -586,8 +696,58 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     input.copyTo(output)
                 }
             } ?: return null
-            targetFile.toUri().toString()
+            val result = targetFile.toUri().toString()
+            Log.d(TAG, "persistArtworkLocally: saved source=$sourceUri target=$result")
+            result
+        }.onFailure { error ->
+            Log.e(TAG, "persistArtworkLocally: failed source=$sourceUri trackId=$trackId", error)
         }.getOrNull()
+    }
+
+    private fun persistEmbeddedArtworkLocally(bytes: ByteArray, trackId: String): String? {
+        val extension = detectEmbeddedArtworkExtension(bytes)
+        val artworkDir = File(getApplication<Application>().filesDir, "artwork").apply {
+            mkdirs()
+        }
+        val targetFile = File(artworkDir, "$trackId.$extension")
+
+        return runCatching {
+            targetFile.outputStream().use { output ->
+                output.write(bytes)
+            }
+            val result = targetFile.toUri().toString()
+            Log.d(TAG, "persistEmbeddedArtworkLocally: saved trackId=$trackId target=$result")
+            result
+        }.onFailure { error ->
+            Log.e(TAG, "persistEmbeddedArtworkLocally: failed trackId=$trackId", error)
+        }.getOrNull()
+    }
+
+    private fun detectEmbeddedArtworkExtension(bytes: ByteArray): String {
+        return when {
+            bytes.size >= 8 &&
+                bytes[0] == 0x89.toByte() &&
+                bytes[1] == 0x50.toByte() &&
+                bytes[2] == 0x4E.toByte() &&
+                bytes[3] == 0x47.toByte() -> "png"
+
+            bytes.size >= 3 &&
+                bytes[0] == 0xFF.toByte() &&
+                bytes[1] == 0xD8.toByte() &&
+                bytes[2] == 0xFF.toByte() -> "jpg"
+
+            bytes.size >= 12 &&
+                bytes[0] == 0x52.toByte() &&
+                bytes[1] == 0x49.toByte() &&
+                bytes[2] == 0x46.toByte() &&
+                bytes[3] == 0x46.toByte() &&
+                bytes[8] == 0x57.toByte() &&
+                bytes[9] == 0x45.toByte() &&
+                bytes[10] == 0x42.toByte() &&
+                bytes[11] == 0x50.toByte() -> "webp"
+
+            else -> "jpg"
+        }
     }
 
     private fun DocumentFile.isSupportedAudioFile(): Boolean {
@@ -610,32 +770,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return lowercase()
             .replace("&", "and")
             .replace(Regex("[^a-z0-9а-я]"), "")
-    }
-
-    companion object {
-        private val SUPPORTED_AUDIO_EXTENSIONS = setOf(
-            "mp3",
-            "wav",
-            "flac",
-            "aac",
-            "m4a",
-            "ogg",
-            "opus",
-        )
-        private val SUPPORTED_ARTWORK_EXTENSIONS = setOf(
-            "png",
-            "jpg",
-            "jpeg",
-            "webp",
-        )
-        private val GENERIC_ARTWORK_NAMES = setOf(
-            "cover",
-            "folder",
-            "front",
-            "artwork",
-            "album",
-            "thumb",
-        )
     }
 
     private data class PlaybackUiState(
