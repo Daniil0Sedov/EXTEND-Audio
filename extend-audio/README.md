@@ -13,7 +13,7 @@ EXTEND Audio is an Android MVP for local music playback with headphone-oriented 
 
 ## Current Status
 
-Creating presentation of part 17 now.
+Part 15, Stage 1 is focused on a fresh Android app scaffold in `android-app/`.
 
 Implemented direction for this stage:
 
@@ -32,4 +32,4 @@ Implemented direction for this stage:
 ## Notes
 
 - The old `Project/` app is intentionally not used as the base for this stage.
-- Cloud/community features and the real equalizer engine are planned for later.
+- Cloud/community features and the real equalizer engine are planned for later steps.
